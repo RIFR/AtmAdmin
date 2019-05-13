@@ -17,10 +17,10 @@ public class AtmAdmin {
 
     String dirName = "C:\\Dev\\AtmAdmin\\";
     
-    String userFile        = "userlist.ser";
-    String customerFile    = "customerlist.ser";
-    String accountFile     = "accountlist.ser";
-    String transactionFile = "transactionlist.ser";
+    String userFile        = dirName + "userlist.ser";
+    String customerFile    = dirName + "customerlist.ser";
+    String accountFile     = dirName + "accountlist.ser";
+    String transactionFile = dirName + "transactionlist.ser";
     
     
     public AtmAdmin() {
@@ -41,15 +41,15 @@ public class AtmAdmin {
         studentList.put(student.getKey(),student);
         FileIO.writeObject(studentList,"studentlist.ser");
 */
-        LoadData();
+        LoadReloadData();
 
-        if (userList == null) {
-            User user = new User("Super","User","SuperUser","admin@mybank.se","Super","007");
-            userList.put(user.getKey(),user);
-        }
+        //if (userList == null) {
+        //    User user = new User("Super","User","SuperUser","admin@mybank.se","Super","007");
+        //    userList.put(user.getKey(),user);
+        //}
     }
 
-    private void LoadData () {
+    private void LoadReloadData () {
         
         userList        = FileIO.readObject(userFile);
         customerList    = FileIO.readObject(customerFile);
@@ -99,7 +99,7 @@ public class AtmAdmin {
             answer =menu();
             switch (answer) {
                 case "0":
-                    LoadData();
+                    LoadReloadData();
                     break;
                 case "1":
                     maintainCustomer();
@@ -132,7 +132,16 @@ public class AtmAdmin {
                     listTransactions();System.out.println("");
                     break;
             }
-        } while (!answer.equals("9"));
+        } while (!answer.equals("q"));
+
+        if (accountList != null)
+            FileIO.writeObject(accountList, accountFile);
+        if (customerList != null)
+            FileIO.writeObject(customerList, customerFile);
+        if (transactionList != null)
+            FileIO.writeObject(transactionList, transactionFile);
+        if (userList != null)
+            FileIO.writeObject(userList, userFile);
     }
 
     private String menu() {
@@ -143,16 +152,16 @@ public class AtmAdmin {
             StdIO.writeLine("Menu");
             StdIO.writeLine("");
             StdIO.writeLine("0. Reload");
-            StdIO.writeLine("1. Add student");
-            StdIO.writeLine("2. List students");
+            StdIO.writeLine("1. Maintain Customer");
+            StdIO.writeLine("2. List Customer");
             StdIO.writeLine("3. Scan Transaction");
             StdIO.writeLine("4. List Transactions");
             StdIO.writeLine("5. Maintain users");
             StdIO.writeLine("6. List users");
             StdIO.writeLine("7. Maintain Accounts");
-            StdIO.writeLine("8. List v");
+            StdIO.writeLine("8. List Accounts");
             StdIO.writeLine("");
-            StdIO.writeLine("9. Exit");
+            StdIO.writeLine("q. Exit");
             StdIO.writeLine("");
             StdIO.write("Select : ");
             answer = StdIO.readLine();
@@ -165,19 +174,16 @@ public class AtmAdmin {
 
     private void scanTransaction() {
         try {
-            String barcode;
-            boolean deposit;
-            double money;
             StdIO.clearScreen();
-            StdIO.writeLine("Scan Arrival");
+            StdIO.writeLine("Scan Transaction");
 
             StdIO.writeLine("");
             StdIO.write("Barcode : ");
-            barcode = StdIO.readLine();
+            String barcode = StdIO.readLine();
             StdIO.write("Deposit : ");
-            deposit = StdIO.readYesOrNo();
-            StdIO.write("How much money : ");
-            money = Double.valueOf(StdIO.readLine());
+            boolean deposit = StdIO.readYesOrNo();
+            StdIO.write("Money   : ");
+            double money = Double.valueOf(StdIO.readLine());
 
             String fullName = registerTransaction(barcode,deposit,money);
             if (!fullName.isEmpty()) {
@@ -190,7 +196,7 @@ public class AtmAdmin {
     }
 
     public String registerTransaction(String accountId, boolean deposit, double money) {
-        System.out.println(accountId);
+        System.out.println(accountId + (deposit ? " + ":" - ") +money);
         try {
             String returnStr = "";
 
@@ -232,7 +238,7 @@ public class AtmAdmin {
     private void maintainCustomer() {
         try {
             StdIO.clearScreen();
-            listCustomers();
+            //listCustomers();
             StdIO.writeLine("");
             StdIO.writeLine("Add a customer");
             StdIO.writeLine("");
@@ -246,8 +252,6 @@ public class AtmAdmin {
             String email = StdIO.readLine();
             StdIO.write("Barcode : ");
             String barcode = StdIO.readLine();
-            StdIO.write("Class ID : ");
-            String accountId = StdIO.readLine();
             Customer customer = new Customer(firstName, lastName, userName, email, barcode);
             customerList.put(customer.getKey(), customer);
             FileIO.writeObject(customerList,customerFile);
@@ -301,7 +305,7 @@ public class AtmAdmin {
             Customer customer;
 
             StdIO.clearScreen();
-            listAccounts();
+            //listAccounts();
 
             StdIO.writeLine("");
             StdIO.writeLine("Add an Account");
@@ -317,16 +321,17 @@ public class AtmAdmin {
             }
 
             StdIO.writeLine("");
-            StdIO.write("Account ID : ");
-            int accountID = Integer.valueOf(StdIO.readLine());
-            StdIO.write("Saldo : ");
+            StdIO.write("Account     : ");
+            String accountID = StdIO.readLine().trim();
+            StdIO.write("Saldo       : ");
             double saldo = Double.valueOf(StdIO.readLine());
-            StdIO.write("Decsription : ");
+            StdIO.write("Description : ");
             String description = StdIO.readLine();
 
             Account account = new Account(customer, accountID,saldo,description);
             accountList.put(account.getKey(), account);
-            FileIO.writeObject(accountList,dirName + "classroomlist.ser");
+
+            FileIO.writeObject(accountList,accountFile);
         } catch (Exception e) {
             System.out.println(e);
         }

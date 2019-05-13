@@ -69,7 +69,7 @@ public class Customer implements java.io.Serializable{
         returnString  = Str.padRight("Firstname",16);
         returnString += Str.padRight("Lastname",16);
         returnString += Str.padRight("Username",11);
-        returnString += Str.padRight("email",21);
+        returnString += Str.padRight("email",30);
         returnString += Str.padRight("Barcode",14);
         return returnString;
     }
@@ -79,7 +79,7 @@ public class Customer implements java.io.Serializable{
         returnString  = Str.padRight(getFirstName(),16);
         returnString += Str.padRight(getLastName(),16);
         returnString += Str.padRight(getUserName(),11);
-        returnString += Str.padRight(getEmail(),21);
+        returnString += Str.padRight(getEmail(),30);
         returnString += Str.padRight(getBarCode(),14);
         return returnString;
     }

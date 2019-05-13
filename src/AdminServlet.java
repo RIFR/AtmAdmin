@@ -29,13 +29,13 @@ public class AdminServlet  extends HttpServlet {
 
                     break;
                 case "2":
-                    String accountId = request.getParameter("accountId");
+                    String account = request.getParameter("account");
                     String deposit = request.getParameter("deposit");
-                    String money = request.getParameter("money");
-                    if (accountId == null)
+                    String money   = request.getParameter("money");
+                    if (account == null)
                         message = depositWithdraw();
                     else
-                        message =  atmAdmin.registerTransaction(accountId,Boolean.getBoolean(deposit),Double.valueOf(money));
+                        message =  atmAdmin.registerTransaction(account,Boolean.getBoolean(deposit),Double.valueOf(money));
                         message += "    <input type = \"hidden\" name = \"pos\" value = \"m\">\n";
                     break;
                 case "3":
@@ -116,15 +116,19 @@ public class AdminServlet  extends HttpServlet {
     }
 
     private String depositWithdraw() {
-        String barcode = "";
+        String account = "";
+        String deposit = "";
+        String money   = "";
         String returnStr;
         returnStr  = "<form action = \"AdminServlet\" method = \"GET\">\n";
         returnStr += "    <input type = \"hidden\" name = \"pos\" value = \"2\">\n";
-        returnStr += "    Barcode: <input type = \"text\" name = \"barcode\" value = \""+barcode+"\">\n";
+        returnStr += "    Account: <input type = \"text\" name = \"account\" value = \""+account+"\">\n";
+        returnStr += "    Deposit: <input type = \"text\" name = \"deposit\" value = \""+deposit+"\">\n";
+        returnStr += "    Money: <input type = \"text\" name = \"money\" value = \""+money+"\">\n";
         returnStr += "    <br />";
         returnStr += "    <input type = \"submit\" value = \"Submit\" />\n";
         returnStr += "</form>";
-        title = "Arrival/Departure";
+        title = "Deposit/Withdraw";
 
         return returnStr;
 

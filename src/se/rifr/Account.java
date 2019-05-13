@@ -3,26 +3,24 @@ package se.rifr;
 public class Account implements java.io.Serializable{
 
     private Customer customer;
-    private int accountId;
+    private String accountId;
     private double saldo;
     private String description;
 
-    public Account(Customer customer, int accountId, double saldo, String description) {
-        this.customer = customer;
-        this.accountId = accountId;
-        this.saldo = saldo;
+    public Account(Customer customer, String accountId, double saldo, String description) {
+        this.customer    = customer;
+        this.accountId   = accountId;
+        this.saldo       = saldo;
         this.description = description;
     }
 
-    public String getKey() {
-        return Integer.toString(accountId).trim();
-    }
+    public String getKey() { return accountId; }
 
-    public int getAccountId() {
+    public String getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(int accountId) {
+    public void setAccountId(String accountId) {
         this.accountId = accountId;
     }
 
@@ -53,7 +51,7 @@ public class Account implements java.io.Serializable{
     @Override
     public String toString() {
         return "Account{" + Str.padRight(customer.getFullName(),30) +
-                "accountId=" + Str.padLeft(Integer.toString(accountId).trim(),15) +
+                "id=" + Str.padLeft(accountId.trim(),20) +
                 ", saldo=" + Str.padLeft(Double.toString(saldo).trim(),10) +
                 ", description='" + description + '\'' +
                 '}';

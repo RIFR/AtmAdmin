@@ -1,6 +1,7 @@
 package se.rifr;
 
 public class User  implements java.io.Serializable{
+
     private String firstName;
     private String lastName;
     private String userName;
