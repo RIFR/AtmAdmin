@@ -4,16 +4,16 @@ public class Customer implements java.io.Serializable{
 
     private String firstName;
     private String lastName;
-    private String userName;
-    private String email;
     private String barCode;
+    private String email;
+    private String userName;
 
-    public Customer(String firstName, String lastName, String userName, String email, String barCode) {
+    public Customer(String firstName, String lastName, String barCode, String email, String userName) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.userName = userName;
-        this.email = email;
         this.barCode = barCode;
+        this.email = email;
+        this.userName = userName;
     }
 
     public String getKey() {
@@ -64,26 +64,6 @@ public class Customer implements java.io.Serializable{
         this.barCode = barCode;
     }
 
-    public static String toStringHeader() {
-        String returnString;
-        returnString  = Str.padRight("Firstname",16);
-        returnString += Str.padRight("Lastname",16);
-        returnString += Str.padRight("Username",11);
-        returnString += Str.padRight("email",30);
-        returnString += Str.padRight("Barcode",14);
-        return returnString;
-    }
-
-    public String toStringLine() {
-        String returnString;
-        returnString  = Str.padRight(getFirstName(),16);
-        returnString += Str.padRight(getLastName(),16);
-        returnString += Str.padRight(getUserName(),11);
-        returnString += Str.padRight(getEmail(),30);
-        returnString += Str.padRight(getBarCode(),14);
-        return returnString;
-    }
-
     @Override
     public String toString() {
         return "Customer{" +
@@ -94,4 +74,25 @@ public class Customer implements java.io.Serializable{
                 ", barCode='" + barCode + '\'' +
                 '}';
     }
+
+    public static String toStringHeader() {
+        String returnString;
+        returnString  = Str.padRight("Firstname",16);
+        returnString += Str.padRight("Lastname",16);
+        returnString += Str.padRight("Barcode",14);
+        returnString += Str.padRight("email",40);
+        returnString += Str.padRight("Username",20);
+        return returnString;
+    }
+
+    public String toStringLine() {
+        String returnString;
+        returnString  = Str.padRight(getFirstName(),16);
+        returnString += Str.padRight(getLastName(),16);
+        returnString += Str.padRight(getBarCode(),14);
+        returnString += Str.padRight(getEmail(),40);
+        returnString += Str.padRight(getUserName(),20);
+        return returnString;
+    }
+
 }

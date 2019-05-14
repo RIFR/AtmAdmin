@@ -6,17 +6,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.time.LocalDateTime.now;
-
 public class AtmAdmin {
     
-    private Map<String, User> userList = new HashMap<>();
-    private Map<String, Account> accountList = new HashMap<>();
+    private Map<String, User> userList         = new HashMap<>();
+    private Map<String, Account> accountList   = new HashMap<>();
     private Map<String, Customer> customerList = new HashMap<>();
     private List<Transactions> transactionList = new ArrayList<>();
 
     String dirName = "C:\\Dev\\AtmAdmin\\";
-    
+
     String userFile        = dirName + "userlist.ser";
     String customerFile    = dirName + "customerlist.ser";
     String accountFile     = dirName + "accountlist.ser";
@@ -24,37 +22,41 @@ public class AtmAdmin {
     
     
     public AtmAdmin() {
-        /*
-        User user = new User("Marcus","Gyllencreutz","Marcus","marcus.gyllencreutz@lexicon.se","hemligt","007");
-        userList.put(user.getKey(),user);
-        FileIO.writeObject(userList,"userlist.ser");
 
-        Account classroom = new Account(1,"Java","Java class");
-        classroomList.put(classroom.getKey(), classroom);
-
-        FileIO.writeObject(classroomList,"classroomlist.ser");
-        Customer student = new Customer("Nisse",
-                "Ghandi",
-                "nisse",
-                "nisse@ghandi.se","123456789",classroomList.get("1"));
-
-        studentList.put(student.getKey(),student);
-        FileIO.writeObject(studentList,"studentlist.ser");
-*/
         LoadReloadData();
 
-        //if (userList == null) {
-        //    User user = new User("Super","User","SuperUser","admin@mybank.se","Super","007");
-        //    userList.put(user.getKey(),user);
-        //}
+        if (userList == null) {
+
+            User user = new User("Super","User","007","admin@mybank.se","SuperUser","SuperUser");
+            userList.put(user.getKey(),user);
+            FileIO.writeObject(userList, userFile);
+        }
     }
 
+
     private void LoadReloadData () {
-        
-        userList        = FileIO.readObject(userFile);
-        customerList    = FileIO.readObject(customerFile);
-        accountList     = FileIO.readObject(accountFile);
-        transactionList = FileIO.readObject(transactionFile);
+
+        try{
+            Map<String, User> tempUserList = FileIO.readObject(userFile);
+            if (tempUserList != null)
+                userList = tempUserList;
+
+            Map<String, Customer> tempCustomerList = FileIO.readObject(customerFile);
+            if (tempCustomerList != null)
+                customerList = tempCustomerList;
+
+            Map<String, Account> tempAccountList = FileIO.readObject(accountFile);
+            if (tempAccountList != null)
+                accountList = tempAccountList;
+
+            List<Transactions> tempTransactionList= FileIO.readObject(transactionFile);
+            if (tempTransactionList != null)
+                transactionList = tempTransactionList;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+        }
     }
 
     private boolean login() {
@@ -78,10 +80,12 @@ public class AtmAdmin {
             return false;
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
         }
         return false;
     }
+
     public String checkLogin(String username, String password) {
         String returnStr = "";
 
@@ -97,6 +101,7 @@ public class AtmAdmin {
         String answer = "";
         do {
             answer =menu();
+            try{
             switch (answer) {
                 case "0":
                     LoadReloadData();
@@ -125,6 +130,20 @@ public class AtmAdmin {
                 case "8":
                     listAccounts();
                     break;
+                case "9":
+                    copyCustomerDataToUser();
+                    break;
+                case "88":
+
+                    Customer customer = new Customer("Kalle", "Anka", "189901011111", "kalle.anka@ankeborg.com", "KALLE ANKA");
+                    customerList.put(customer.getKey(),customer);
+
+                    Account account = new Account(customer, "0123456789012345", 50000.0, "Test account");
+                    accountList.put(account.getKey(), account);
+
+                    User user = new User("Super","User","007","admin@mybank.se","SuperUser","SuperUser");
+                    userList.put(user.getKey(),user);
+
                 case "99":
                     listUsers(); System.out.println("");
                     listAccounts();System.out.println("");
@@ -132,7 +151,11 @@ public class AtmAdmin {
                     listTransactions();System.out.println("");
                     break;
             }
-        } while (!answer.equals("q"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                StdIO.ErrorReport("Exception -" + e.toString());
+            }
+        } while (!answer.equalsIgnoreCase("q"));
 
         if (accountList != null)
             FileIO.writeObject(accountList, accountFile);
@@ -160,6 +183,7 @@ public class AtmAdmin {
             StdIO.writeLine("6. List users");
             StdIO.writeLine("7. Maintain Accounts");
             StdIO.writeLine("8. List Accounts");
+            StdIO.writeLine("9. Create user from customer");
             StdIO.writeLine("");
             StdIO.writeLine("q. Exit");
             StdIO.writeLine("");
@@ -167,7 +191,8 @@ public class AtmAdmin {
             answer = StdIO.readLine();
             return answer;
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
             return null;
         }
     }
@@ -178,134 +203,212 @@ public class AtmAdmin {
             StdIO.writeLine("Scan Transaction");
 
             StdIO.writeLine("");
-            StdIO.write("Barcode : ");
-            String barcode = StdIO.readLine();
-            StdIO.write("Deposit : ");
+            StdIO.write("Account No    : ");
+            String accountId = StdIO.readLine();
+            if (!accountList.containsKey(accountId)) {
+                StdIO.write("Barcode : ");
+                String barcode = StdIO.readLine();
+                for (Account x : accountList.values()){
+                    if (x.getCustomer().getBarCode().equalsIgnoreCase(barcode))
+                        accountId = x.getKey();
+                }
+            }
+
+            StdIO.write("Deposit (y/n) : ");
             boolean deposit = StdIO.readYesOrNo();
-            StdIO.write("Money   : ");
+            StdIO.write("Amount        : ");
             double money = Double.valueOf(StdIO.readLine());
 
-            String fullName = registerTransaction(barcode,deposit,money);
+            String fullName = registerTransaction(accountId,deposit,money);
             if (!fullName.isEmpty()) {
                 StdIO.writeLine(fullName);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
         }
     }
 
-    public String registerTransaction(String accountId, boolean deposit, double money) {
-        System.out.println(accountId + (deposit ? " + ":" - ") +money);
+    public String registerTransaction(String accountId, boolean deposit, double amount) {
+        //System.out.println(accountId + (deposit ? " + ":" - ") +money);
         try {
             String returnStr = "";
 
             if (accountList.containsKey(accountId)) {
                 Account account = accountList.get(accountId);
 
-                if (!(deposit && account.getSaldo() < money)) {
+                if (!(deposit && account.getSaldo() < amount)) {
 
-                    Transactions transactions = new Transactions(account, LocalDateTime.now(), deposit,money);
+                    Transactions transactions = new Transactions(account, LocalDateTime.now(), deposit,amount);
+
                     transactionList.add(transactions);
+                    FileIO.writeObject(transactionList, transactionFile);
 
                     if (deposit)
-                        account.setSaldo(account.getSaldo() - money);
+                        account.setSaldo(account.getSaldo() + amount);
                     else
-                        account.setSaldo(account.getSaldo() + money);
+                        account.setSaldo(account.getSaldo() - amount);
 
                     returnStr = account.getCustomer().getFullName() + " current saldo " +account.getSaldo();
 
-                    FileIO.writeObject(transactionList, transactionFile);
+                    accountList.put(account.getKey(),account);
+                    FileIO.writeObject(accountList, accountFile);
+
                     return returnStr;
 
                 }
             }
             return "Account with "+accountId+" not found";
+
         } catch (Exception e) {
             e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
             return "EXCEPTION: " +e;
         }
     }
 
-    //public String listTransactions() {
-    //    return transactionList.stream().collect();
+    //private String TransactionToString (Transactions trans) {
+    //    return trans.toString();
     //}
+    public String listAllTransactions() {
+        String str = "";
+        for (Transactions x : transactionList){
+            str += x.toString() +"\r\n";
+        }
+        return str;
+    }
 
     private void listCustomers() {
         System.out.println(Customer.toStringHeader());
-        customerList.forEach((k,v) -> System.out.println(v.toStringLine()));
+        if (customerList != null)
+            customerList.forEach((k,v) -> System.out.println(v.toStringLine()));
     }
     private void maintainCustomer() {
         try {
             StdIO.clearScreen();
-            //listCustomers();
+
             StdIO.writeLine("");
-            StdIO.writeLine("Add a customer");
+            StdIO.writeLine("Add/update customer");
             StdIO.writeLine("");
-            StdIO.write("First name : ");
+
+            StdIO.write("First name: ");
             String firstName = StdIO.readLine();
             StdIO.write("Last name : ");
             String lastName = StdIO.readLine();
+            StdIO.write("Barcode   : ");
+            String barcode = StdIO.readLine();
+            StdIO.write("email     : ");
+            String email = StdIO.readLine();
             StdIO.write("User name : ");
             String userName = StdIO.readLine();
-            StdIO.write("email : ");
-            String email = StdIO.readLine();
-            StdIO.write("Barcode : ");
-            String barcode = StdIO.readLine();
-            Customer customer = new Customer(firstName, lastName, userName, email, barcode);
+
+            Customer customer = new Customer(firstName, lastName, barcode, email, userName);
+
             customerList.put(customer.getKey(), customer);
-            FileIO.writeObject(customerList,customerFile);
+
+            FileIO.writeObject(customerList, customerFile);
+
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
         }
 
     }
 
     private void listTransactions() {
-        transactionList.stream().forEach(item -> System.out.println());
+        System.out.println(Transactions.toStringHeader());
+        if (transactionList != null)
+            transactionList.stream().forEach(item -> System.out.println(item.toStringLine()));
     }
 
     private  void listUsers() {
-        userList.forEach((k,v)-> System.out.println(v));
+        System.out.println(User.toStringHeader());
+        if (userList != null)
+            userList.forEach((k,v) -> System.out.println(v.toStringLine()));
     }
 
     private void maintainUsers() {
         try {
             StdIO.clearScreen();
-            listUsers();
+
             StdIO.writeLine("");
             StdIO.writeLine("Add a user");
             StdIO.writeLine("");
-            StdIO.write("First name : ");
+            StdIO.write("First name: ");
             String firstName = StdIO.readLine();
             StdIO.write("Last name : ");
             String lastName = StdIO.readLine();
+            StdIO.write("Barcode   : ");
+            String barcode = StdIO.readLine();
+            StdIO.write("email     : ");
+            String email = StdIO.readLine();
             StdIO.write("User name : ");
             String userName = StdIO.readLine();
-            StdIO.write("email : ");
-            String email = StdIO.readLine();
-            StdIO.write("Password : ");
+            StdIO.write("Password  : ");
             String password = StdIO.readLine();
-            StdIO.write("Barcode : ");
-            String barcode = StdIO.readLine();
-            User user = new User(firstName,lastName,userName,email,password,barcode);
+            User user = new User(firstName,lastName,barcode,email,userName,password);
+
             userList.put(user.getKey(),user);
+
             FileIO.writeObject(userList,userFile);
+
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
         }
     }
 
-    private void listAccounts() {
-        accountList.forEach((k,v)-> System.out.println(v));
+    private void copyCustomerDataToUser () {
+
+        try {
+
+            Customer customer;
+            StdIO.write("Barcode   : ");
+            String barcode = StdIO.readLine().trim();
+
+            if (customerList.containsKey(barcode))
+                customer = customerList.get(barcode);
+            else {
+                StdIO.ErrorReport("Unknown Customer " +barcode);
+                return;
+            }
+
+            String userName = customer.getUserName();
+            while (userList.containsKey(userName)){
+                StdIO.ErrorReport("User Name " + customer.getUserName() + " already exists, enter new");
+                userName = StdIO.readLine().trim();
+            }
+
+            customer.setUserName(userName);
+            customerList.put(customer.getKey(),customer);
+            FileIO.writeObject(customerList,customerFile);
+
+            StdIO.write("Password   : ");
+            String password = StdIO.readLine().trim();
+
+            User user = new User(customer.getFirstName(),customer.getLastName(),customer.getBarCode(),customer.getEmail(),userName,password);
+            userList.put(user.getKey(),user);
+            FileIO.writeObject(userList,userFile);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+        }
+
     }
+
+    private void listAccounts() {
+        System.out.println(Account.toStringHeader());
+        if (accountList != null)
+            accountList.forEach((k,v) -> System.out.println(v.toStringLine()));
+     }
 
     private void maintainAccounts() {
         try {
             Customer customer;
 
             StdIO.clearScreen();
-            //listAccounts();
 
             StdIO.writeLine("");
             StdIO.writeLine("Add an Account");
@@ -321,19 +424,21 @@ public class AtmAdmin {
             }
 
             StdIO.writeLine("");
-            StdIO.write("Account     : ");
+            StdIO.write("Account Id  : ");
             String accountID = StdIO.readLine().trim();
             StdIO.write("Saldo       : ");
             double saldo = Double.valueOf(StdIO.readLine());
             StdIO.write("Description : ");
             String description = StdIO.readLine();
 
-            Account account = new Account(customer, accountID,saldo,description);
+            Account account = new Account(customer, accountID, saldo, description);
             accountList.put(account.getKey(), account);
 
-            FileIO.writeObject(accountList,accountFile);
+            FileIO.writeObject(accountList, accountFile);
+
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
         }
     }
 }

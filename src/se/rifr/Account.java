@@ -56,4 +56,27 @@ public class Account implements java.io.Serializable{
                 ", description='" + description + '\'' +
                 '}';
     }
+
+    public static String toStringHeader() {
+        String returnString;
+        returnString  = Str.padRight("Firstname",16);
+        returnString += Str.padRight("Lastname",16);
+        returnString += Str.padRight("Barcode",14);
+        returnString += Str.padRight("Account No",40);
+        returnString += Str.padRight("Saldo",20);
+        returnString += Str.padRight("Description",20);
+        return returnString;
+    }
+
+    public String toStringLine() {
+        String returnString;
+        returnString  = Str.padRight(customer.getFirstName(),16);
+        returnString += Str.padRight(customer.getLastName(),16);
+        returnString += Str.padRight(customer.getBarCode(),14);
+        returnString += Str.padRight(getAccountId(),40);
+        returnString += Str.padRight(Double.toString(getSaldo()),20);
+        returnString += Str.padRight(getDescription(),20);
+        return returnString;
+    }
+
 }
