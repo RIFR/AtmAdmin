@@ -27,12 +27,11 @@ public class AtmAdmin {
 
         LoadReloadData();
 
-        if (userList == null) {
-
-            User user = new User("Super","User","007","admin@mybank.se","SuperUser","SuperUser");
-            userList.put(user.getKey(),user);
-            FileIO.writeObject(userList, userFile);
-        }
+        //if (userList == null) {
+        User user = new User("Super","User","007","admin@mybank.se","SuperUser","SuperUser");
+        userList.put(user.getKey(),user);
+        //FileIO.writeObject(userList, userFile);
+        //}
     }
 
 
@@ -155,6 +154,9 @@ public class AtmAdmin {
                 case "13":
                     listAtmMachines();
                     break;
+                case "14":
+                    deleteUser();
+                    break;
                 case "88":
 
                     Customer customer = new Customer("Kalle", "Anka", "189901011111", "kalle.anka@ankeborg.com", "KALLE ANKA");
@@ -200,6 +202,7 @@ public class AtmAdmin {
             String answer;
 
             StdIO.clearScreen();
+            StdIO.writeLine("");
             StdIO.writeLine("Menu");
             StdIO.writeLine("");
             StdIO.writeLine(" 0. Reload");
@@ -212,9 +215,11 @@ public class AtmAdmin {
             StdIO.writeLine(" 7. Maintain Accounts");
             StdIO.writeLine(" 8. List Accounts");
             StdIO.writeLine(" 9. Create user from customer");
-            StdIO.writeLine("10. Delete user");
-            StdIO.writeLine("11. Maintain ATM machines");
-            StdIO.writeLine("12. List ATM machines");
+            StdIO.writeLine("10. Maintain cards");
+            StdIO.writeLine("11. List cards");
+            StdIO.writeLine("12. Maintain ATM machines");
+            StdIO.writeLine("13. List ATM machines");
+            StdIO.writeLine("14. Delete user");
             StdIO.writeLine("");
             StdIO.writeLine("q. Exit");
             StdIO.writeLine("");
@@ -426,8 +431,28 @@ public class AtmAdmin {
             e.printStackTrace();
             StdIO.ErrorReport("Exception -" + e.toString());
         }
-
     }
+    private void deleteUser() {
+        try {
+            StdIO.write("User Name : ");
+            String userName = StdIO.readLine();
+            if (userList.containsKey(userName)) {
+                User user = userList.get(userName);
+                StdIO.writeLine("Confirm deletion for "
+                        +user.getFirstName()+" " +user.getLastName() + " "+user.getBarcode()+ "(y/n)");
+                if (StdIO.readYesOrNo()) {
+                    userList.remove(userName);
+                    FileIO.writeObject(userList,userFile);
+                }
+            } else
+                StdIO.ErrorReport("Unknown User Name");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+        }
+    }
+
 
     private void listAccounts() {
         System.out.println(Account.toStringHeader());
@@ -490,8 +515,9 @@ public class AtmAdmin {
             String cardId = StdIO.readLine();
             StdIO.write("Pincode   : ");
             String pincode = StdIO.readLine();
-            StdIO.write("ValidThrou:");
+
             LocalDate validThrou = LocalDateTime.now().plusYears(5).toLocalDate();
+            StdIO.writeLine("ValidThrou "+validThrou.toString());
 
             StdIO.write("Account Id  : ");
             String accountID = StdIO.readLine().trim();
