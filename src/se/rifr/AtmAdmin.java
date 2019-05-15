@@ -1,17 +1,17 @@
 package se.rifr;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AtmAdmin {
-    
-    private Map<String, User> userList         = new HashMap<>();
-    private Map<String, Account> accountList   = new HashMap<>();
+
+    private Map<String, User>         userList = new HashMap<>();
+    private Map<String, Account>   accountList = new HashMap<>();
     private Map<String, Customer> customerList = new HashMap<>();
     private List<Transactions> transactionList = new ArrayList<>();
+    private Map<String, Card>         cardList = new HashMap<>();
+    private Map<String, AtmHw>       atmHwList = new HashMap<>();
 
     String dirName = "C:\\Dev\\AtmAdmin\\";
 
@@ -19,7 +19,9 @@ public class AtmAdmin {
     String customerFile    = dirName + "customerlist.ser";
     String accountFile     = dirName + "accountlist.ser";
     String transactionFile = dirName + "transactionlist.ser";
-    
+    String cardFile        = dirName + "cardlist.ser";
+    String atmHwFile       = dirName + "atmhwlist.ser";
+
     
     public AtmAdmin() {
 
@@ -52,6 +54,14 @@ public class AtmAdmin {
             List<Transactions> tempTransactionList= FileIO.readObject(transactionFile);
             if (tempTransactionList != null)
                 transactionList = tempTransactionList;
+
+            Map<String, Card> tempCardList = FileIO.readObject(cardFile);
+            if (tempAccountList != null)
+                cardList = tempCardList;
+
+            Map<String, AtmHw> tempAtmHwList = FileIO.readObject(atmHwFile);
+            if (tempAccountList != null)
+                atmHwList = tempAtmHwList;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,6 +143,18 @@ public class AtmAdmin {
                 case "9":
                     copyCustomerDataToUser();
                     break;
+                case "10":
+                    maintainCards();
+                    break;
+                case "11":
+                    listCards();
+                    break;
+                case "12":
+                    maintainAtmMachines();
+                    break;
+                case "13":
+                    listAtmMachines();
+                    break;
                 case "88":
 
                     Customer customer = new Customer("Kalle", "Anka", "189901011111", "kalle.anka@ankeborg.com", "KALLE ANKA");
@@ -149,6 +171,8 @@ public class AtmAdmin {
                     listAccounts();System.out.println("");
                     listCustomers();System.out.println("");
                     listTransactions();System.out.println("");
+                    listCards();System.out.println("");
+                    listAtmMachines();System.out.println("");
                     break;
             }
             } catch (Exception e) {
@@ -165,6 +189,10 @@ public class AtmAdmin {
             FileIO.writeObject(transactionList, transactionFile);
         if (userList != null)
             FileIO.writeObject(userList, userFile);
+        if (cardList != null)
+            FileIO.writeObject(cardList,cardFile);
+        if (atmHwList != null)
+            FileIO.writeObject(atmHwList,atmHwFile);
     }
 
     private String menu() {
@@ -174,16 +202,19 @@ public class AtmAdmin {
             StdIO.clearScreen();
             StdIO.writeLine("Menu");
             StdIO.writeLine("");
-            StdIO.writeLine("0. Reload");
-            StdIO.writeLine("1. Maintain Customer");
-            StdIO.writeLine("2. List Customer");
-            StdIO.writeLine("3. Scan Transaction");
-            StdIO.writeLine("4. List Transactions");
-            StdIO.writeLine("5. Maintain users");
-            StdIO.writeLine("6. List users");
-            StdIO.writeLine("7. Maintain Accounts");
-            StdIO.writeLine("8. List Accounts");
-            StdIO.writeLine("9. Create user from customer");
+            StdIO.writeLine(" 0. Reload");
+            StdIO.writeLine(" 1. Maintain Customer");
+            StdIO.writeLine(" 2. List Customer");
+            StdIO.writeLine(" 3. Scan Transaction");
+            StdIO.writeLine(" 4. List Transactions");
+            StdIO.writeLine(" 5. Maintain users");
+            StdIO.writeLine(" 6. List users");
+            StdIO.writeLine(" 7. Maintain Accounts");
+            StdIO.writeLine(" 8. List Accounts");
+            StdIO.writeLine(" 9. Create user from customer");
+            StdIO.writeLine("10. Delete user");
+            StdIO.writeLine("11. Maintain ATM machines");
+            StdIO.writeLine("12. List ATM machines");
             StdIO.writeLine("");
             StdIO.writeLine("q. Exit");
             StdIO.writeLine("");
@@ -322,7 +353,7 @@ public class AtmAdmin {
             transactionList.stream().forEach(item -> System.out.println(item.toStringLine()));
     }
 
-    private  void listUsers() {
+    private void listUsers() {
         System.out.println(User.toStringHeader());
         if (userList != null)
             userList.forEach((k,v) -> System.out.println(v.toStringLine()));
@@ -435,6 +466,79 @@ public class AtmAdmin {
             accountList.put(account.getKey(), account);
 
             FileIO.writeObject(accountList, accountFile);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+        }
+    }
+
+    private void listCards() {
+        System.out.println(Card.toStringHeader());
+        if (cardList != null)
+            cardList.forEach((k,v) -> System.out.println(v.toStringLine()));
+    }
+
+    private void maintainCards() {
+        try {
+            StdIO.clearScreen();
+
+            StdIO.writeLine("");
+            StdIO.writeLine("Maintain Cards");
+            StdIO.writeLine("");
+            StdIO.write("Card Id   : ");
+            String cardId = StdIO.readLine();
+            StdIO.write("Pincode   : ");
+            String pincode = StdIO.readLine();
+            StdIO.write("ValidThrou:");
+            LocalDate validThrou = LocalDateTime.now().plusYears(5).toLocalDate();
+
+            StdIO.write("Account Id  : ");
+            String accountID = StdIO.readLine().trim();
+            if (accountList.containsKey(accountID)) {
+                Card card = new Card(cardId,pincode,validThrou,accountList.get(accountID));
+
+                cardList.put(card.getKey(),card);
+
+                FileIO.writeObject(cardList,cardFile);
+            } else {
+                StdIO.ErrorReport("Unknown Account Id " +accountID);
+                return;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+        }
+    }
+
+    private void listAtmMachines() {
+        System.out.println(AtmHw.toStringHeader());
+        if (atmHwList != null)
+            atmHwList.forEach((k,v) -> System.out.println(v.toStringLine()));
+    }
+
+    private void maintainAtmMachines() {
+        try {
+            StdIO.clearScreen();
+
+            StdIO.writeLine("");
+            StdIO.writeLine("Maintain an ATM mashine");
+            StdIO.writeLine("");
+            StdIO.write("MachineId       : ");
+            String mashineId = StdIO.readLine();
+            StdIO.write("Saldo           : ");
+            String saldo = StdIO.readLine();
+            StdIO.write("Description     : ");
+            String description = StdIO.readLine();
+            StdIO.write("HasHwError (y/n): ");
+            boolean hasHwError = StdIO.readYesOrNo();
+
+            AtmHw atmHw = new AtmHw(mashineId,Double.valueOf(saldo),description,hasHwError);
+
+            atmHwList.put(atmHw.getKey(),atmHw);
+
+            FileIO.writeObject(atmHwList,atmHwFile);
 
         } catch (Exception e) {
             e.printStackTrace();

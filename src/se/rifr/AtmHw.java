@@ -1,6 +1,6 @@
 package se.rifr;
 
-public class AtmHw {
+public class AtmHw implements java.io.Serializable {
 
     private String machineId;
     private double saldo;
@@ -12,6 +12,10 @@ public class AtmHw {
         this.saldo = saldo;
         this.description = description;
         this.hasHwError = hasHwError;
+    }
+
+    public String getKey() {
+        return machineId;
     }
 
     public String getMachineId() {
@@ -60,8 +64,8 @@ public class AtmHw {
         String returnString;
         returnString  = Str.padRight("Machine Id",16);
         returnString += Str.padRight("Saldo",16);
+        returnString += Str.padRight("HasHwError",14);
         returnString += Str.padRight("Description",40);
-        returnString += Str.padRight("HasHwError",10);
         return returnString;
     }
 
@@ -69,8 +73,9 @@ public class AtmHw {
         String returnString;
         returnString  = Str.padRight(getMachineId(),16);
         returnString += Str.padRight(Double.toString(getSaldo()),16);
+        returnString += Str.padRight((isHasHwError() ? "ERROR":"OK"),14);
         returnString += Str.padRight(getDescription(),40);
-        returnString += Str.padRight((isHasHwError() ? "ERROR":"OK"),10);
+
         return returnString;
     }
 
