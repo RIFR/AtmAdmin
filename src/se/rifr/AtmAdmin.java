@@ -55,11 +55,11 @@ public class AtmAdmin {
                 transactionList = tempTransactionList;
 
             Map<String, Card> tempCardList = FileIO.readObject(cardFile);
-            if (tempAccountList != null)
+            if (tempCardList != null)
                 cardList = tempCardList;
 
             Map<String, AtmHw> tempAtmHwList = FileIO.readObject(atmHwFile);
-            if (tempAccountList != null)
+            if (tempAtmHwList != null)
                 atmHwList = tempAtmHwList;
 
         } catch (Exception e) {
@@ -100,6 +100,33 @@ public class AtmAdmin {
 
         if (userList.containsKey(username) && userList.get(username).getPassword().equals(password))
             returnStr = userList.get(username).getUserName();
+        return returnStr;
+    }
+
+    public String checkCard(String cardId, String pincode) {
+        String returnStr = "";
+
+        if (cardList.containsKey(cardId) && cardList.get(cardId).getPinCode().equals(pincode) &&
+                cardList.get(cardId).getValidThrou().compareTo(LocalDateTime.now().toLocalDate()) >= 0 )
+            returnStr = cardList.get(cardId).getValidThrou().toString();
+        return returnStr;
+    }
+
+    public String checkSaldo(String cardId, double WithdrawAmount) {
+        String returnStr = "";
+
+        if (cardList.containsKey(cardId) && cardList.get(cardId).getAccount().getSaldo() >= WithdrawAmount )
+            returnStr = cardList.get(cardId).getValidThrou().toString();
+        return returnStr;
+    }
+
+    public String checkMachine(String atmHwId, boolean deposit, double amount) {
+        String returnStr = "";
+
+        if (atmHwList.containsKey(atmHwId) && !atmHwList.get(atmHwId).hasHwError() &&
+                atmHwList.get(atmHwId).getMaxWithdraw()>= amount &&
+                (deposit || atmHwList.get(atmHwId).getSaldo() >= amount) )
+            returnStr = Double.toString(atmHwList.get(atmHwId).getSaldo());
         return returnStr;
     }
 
@@ -159,15 +186,35 @@ public class AtmAdmin {
                     break;
                 case "88":
 
-                    Customer customer = new Customer("Kalle", "Anka", "189901011111", "kalle.anka@ankeborg.com", "KALLE ANKA");
+                    Customer customer = new Customer("Kalle", "Anka", "189901011111", "kalle.anka@ankeborg.com", "KALLEANKA");
                     customerList.put(customer.getKey(),customer);
 
-                    Account account = new Account(customer, "0123456789012345", 50000.0, "Test account");
-                    accountList.put(account.getKey(), account);
-
-                    User user = new User("Super","User","007","admin@mybank.se","SuperUser","SuperUser");
+                    User user = new User(customer.getFirstName(),customer.getLastName(),customer.getBarCode(),customer.getEmail(),customer.getUserName(),"KalleAnkaÄrBäst");
                     userList.put(user.getKey(),user);
 
+                    Account account = new Account(customer, "12345678901234567890", 50000.0, "Kalles head account");
+                    accountList.put(account.getKey(), account);
+
+                    Card card = new Card("000000000000001","12345",LocalDateTime.now().plusYears(2).toLocalDate(),account,20000.0);
+                    cardList.put(card.getKey(), card);
+
+                    AtmHw atmHw1 = new AtmHw("AtmTest001",Double.valueOf(200000.0),"Test ATM","",5000.0);
+                    atmHwList.put(atmHw1.getKey(),atmHw1);
+
+                    AtmHw atmHw2 = new AtmHw("AtmTest002",Double.valueOf(2000.0),"Test ATM","",5000.0);
+                    atmHwList.put(atmHw2.getKey(),atmHw2);
+
+                    AtmHw atmHw3 = new AtmHw("AtmTest003",Double.valueOf(200000.0),"Test ATM","CARD-READER 4",5000.0);
+                    atmHwList.put(atmHw3.getKey(),atmHw3);
+
+                    System.out.println(checkCard(card.getCardId(),card.getPinCode()));
+                    break;
+                case "89":
+                    System.out.println(registerTransaction("12345678901234567890", false, 500.0));
+                    break;
+                case "90":
+                    System.out.println(registerTransaction("12345678901234567890", true, 2000.0));
+                    break;
                 case "99":
                     listUsers(); System.out.println("");
                     listAccounts();System.out.println("");
@@ -234,36 +281,91 @@ public class AtmAdmin {
     }
 
     private void scanTransaction() {
+        Card card;
         try {
             StdIO.clearScreen();
             StdIO.writeLine("Scan Transaction");
 
-            StdIO.writeLine("");
-            StdIO.write("Account No    : ");
-            String accountId = StdIO.readLine();
-            if (!accountList.containsKey(accountId)) {
-                StdIO.write("Barcode : ");
-                String barcode = StdIO.readLine();
-                for (Account x : accountList.values()){
-                    if (x.getCustomer().getBarCode().equalsIgnoreCase(barcode))
-                        accountId = x.getKey();
+            StdIO.write("AtmHw ID      : ");
+            String atmHwId = StdIO.readLine();
+            if (!atmHwList.containsKey(atmHwId)){
+                StdIO.ErrorReport("Unknown ATM mashine "+atmHwId);
+                return;
+            }
+
+            if (atmHwList.get(atmHwId).hasHwError()){
+                StdIO.ErrorReport("ATM mashine HW problem: "+atmHwId + " "+atmHwList.get(atmHwId).getHwErrorCode());
+                return;
+            }
+
+            StdIO.write("Card ID       : ");
+            String cardId = StdIO.readLine();
+            if (!cardList.containsKey(cardId)){
+                StdIO.ErrorReport("Unknown Card " +cardId);
+                return;
+            }
+            card = cardList.get(cardId);
+
+            int noOfTries = 0;
+            boolean contTries = true;
+            while (contTries) {
+                noOfTries++;
+
+                StdIO.write("Pin code      : ");
+                String pinCode = StdIO.readLine();
+
+                contTries = checkCard(card.getCardId(),pinCode).isEmpty();
+
+                if (contTries && noOfTries > 3) {
+                    StdIO.ErrorReport("Unknown Pin Code, max number of tries reached ");
+                    return;
                 }
             }
 
             StdIO.write("Deposit (y/n) : ");
             boolean deposit = StdIO.readYesOrNo();
-            StdIO.write("Amount        : ");
-            double money = Double.valueOf(StdIO.readLine());
 
-            String fullName = registerTransaction(accountId,deposit,money);
+            StdIO.write("Amount        : ");
+            double amount = Double.valueOf(StdIO.readLine());
+
+            if (checkMachine(atmHwId,deposit,amount).isEmpty()) {
+                StdIO.ErrorReport("The ATM HW rejected your request ");
+                return;
+            }
+
+            String fullName = registerTransaction(card.getAccount().getAccountId(),deposit,amount);
             if (!fullName.isEmpty()) {
                 StdIO.writeLine(fullName);
+
+                registerAtmTransaction(atmHwId,deposit,amount);
+
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             StdIO.ErrorReport("Exception -" + e.toString());
         }
+    }
+
+    public String registerAtmTransaction(String atmHwId, boolean deposit, double amount) {
+
+        try {
+            if (atmHwList.containsKey(atmHwId)) {
+                AtmHw atmHw = atmHwList.get(atmHwId);
+
+                atmHw.changeSaldo(amount,deposit);
+                atmHwList.put(atmHw.getKey(),atmHw);
+                FileIO.writeObject(atmHwList, atmHwFile);
+
+                return atmHw.getMachineId();
+            } else
+                StdIO.ErrorReport("UNKNOWN AtmHwId: " +atmHwId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            StdIO.ErrorReport("Exception -" + e.toString());
+       }
+        return ""; //Not OK
     }
 
     public String registerTransaction(String accountId, boolean deposit, double amount) {
@@ -281,10 +383,7 @@ public class AtmAdmin {
                     transactionList.add(transactions);
                     FileIO.writeObject(transactionList, transactionFile);
 
-                    if (deposit)
-                        account.setSaldo(account.getSaldo() + amount);
-                    else
-                        account.setSaldo(account.getSaldo() - amount);
+                    account.changeSaldo(amount,deposit);
 
                     returnStr = account.getCustomer().getFullName() + " current saldo " +account.getSaldo();
 
@@ -349,7 +448,6 @@ public class AtmAdmin {
             e.printStackTrace();
             StdIO.ErrorReport("Exception -" + e.toString());
         }
-
     }
 
     private void listTransactions() {
@@ -511,9 +609,9 @@ public class AtmAdmin {
             StdIO.writeLine("");
             StdIO.writeLine("Maintain Cards");
             StdIO.writeLine("");
-            StdIO.write("Card Id   : ");
+            StdIO.write("Card Id     : ");
             String cardId = StdIO.readLine();
-            StdIO.write("Pincode   : ");
+            StdIO.write("Pincode     : ");
             String pincode = StdIO.readLine();
 
             LocalDate validThrou = LocalDateTime.now().plusYears(5).toLocalDate();
@@ -521,8 +619,12 @@ public class AtmAdmin {
 
             StdIO.write("Account Id  : ");
             String accountID = StdIO.readLine().trim();
+
+            StdIO.write("Max per week: ");
+            String maxPerWeek = StdIO.readLine().trim();
+
             if (accountList.containsKey(accountID)) {
-                Card card = new Card(cardId,pincode,validThrou,accountList.get(accountID));
+                Card card = new Card(cardId,pincode,validThrou,accountList.get(accountID),Double.valueOf(maxPerWeek));
 
                 cardList.put(card.getKey(),card);
 
@@ -557,10 +659,12 @@ public class AtmAdmin {
             String saldo = StdIO.readLine();
             StdIO.write("Description     : ");
             String description = StdIO.readLine();
-            StdIO.write("HasHwError (y/n): ");
-            boolean hasHwError = StdIO.readYesOrNo();
+            StdIO.write("HwErrorCode     : ");
+            String hwErrorCode = StdIO.readLine();
+            StdIO.write("Max withdraw    : ");
+            String maxWithdraw = StdIO.readLine();
 
-            AtmHw atmHw = new AtmHw(mashineId,Double.valueOf(saldo),description,hasHwError);
+            AtmHw atmHw = new AtmHw(mashineId,Double.valueOf(saldo),description,hwErrorCode,Double.valueOf(maxWithdraw));
 
             atmHwList.put(atmHw.getKey(),atmHw);
 

@@ -60,7 +60,7 @@ public class Transactions implements java.io.Serializable{
         returnString += Str.padRight(getAccount().getCustomer().getLastName(),16);
         returnString += Str.padRight(getAccount().getCustomer().getBarCode(),14);
         returnString += Str.padRight((isDeposit() ? "DEPOSIT":"WITHDRAW"),40);
-        returnString += Str.padRight(Double.toString(getAmount()) + " (" + Double.toString(getAccount().getSaldo()) + ")",20);
+        returnString += Str.padRight(Double.toString(getAmount()),20);
         returnString += Str.padRight(getTime().toString().substring(0,19),20);
         return returnString;
     }

@@ -48,6 +48,10 @@ public class Account implements java.io.Serializable{
         this.description = description;
     }
 
+    public void changeSaldo(double amount, boolean deposit ) {
+        saldo += (deposit ? amount : -amount);
+    }
+
     @Override
     public String toString() {
         return "Account{" + Str.padRight(customer.getFullName(),30) +

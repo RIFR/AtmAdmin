@@ -5,13 +5,16 @@ public class AtmHw implements java.io.Serializable {
     private String machineId;
     private double saldo;
     private String description;
-    private boolean hasHwError;
+    private String hwErrorCode;
+    private double maxWithdraw;
 
-    public AtmHw(String machineId, double saldo, String description, boolean hasHwError) {
+    public AtmHw(String machineId, double saldo, String description, String hwErrorCode, double maxWithdraw) {
+
         this.machineId = machineId;
         this.saldo = saldo;
         this.description = description;
-        this.hasHwError = hasHwError;
+        this.hwErrorCode = hwErrorCode;
+        this.maxWithdraw = maxWithdraw;
     }
 
     public String getKey() {
@@ -42,21 +45,38 @@ public class AtmHw implements java.io.Serializable {
         this.description = description;
     }
 
-    public boolean isHasHwError() {
-        return hasHwError;
+    public String getHwErrorCode() {
+        return hwErrorCode;
     }
 
-    public void setHasHwError(boolean hasHwError) {
-        this.hasHwError = hasHwError;
+    public void setHwErrorCode(String hwErrorCode) {
+        this.hwErrorCode = hwErrorCode;
+    }
+
+    public double getMaxWithdraw() {
+        return maxWithdraw;
+    }
+
+    public void setMaxWithdraw(double maxWithdraw) {
+        this.maxWithdraw = maxWithdraw;
+    }
+
+    public boolean hasHwError() {
+        return !(hwErrorCode.isEmpty() || hwErrorCode.equals("OK"));
+    }
+
+    public void changeSaldo(double amount, boolean deposit ) {
+        saldo += (deposit ? amount : -amount);
     }
 
     @Override
     public String toString() {
         return "ATM HW{" +
                 "MachineId='" + machineId + '\'' +
-                ", Saldo='" + saldo + '\'' +
-                ", Description='" + description + '\'' +
-                ", HasHwError='" + (hasHwError ? "TRUE":"FALSE") + '\'' +
+                "Saldo='" + saldo + '\'' +
+                "Description='" + description + '\'' +
+                "HwError='" + hwErrorCode + '\'' +
+                "MaxWithdraw='" + maxWithdraw + '\'' +
                 '}';
     }
 
@@ -64,8 +84,9 @@ public class AtmHw implements java.io.Serializable {
         String returnString;
         returnString  = Str.padRight("Machine Id",16);
         returnString += Str.padRight("Saldo",16);
-        returnString += Str.padRight("HasHwError",14);
+        returnString += Str.padRight("HwErrorCode",14);
         returnString += Str.padRight("Description",40);
+        returnString += Str.padRight("MaxWithdraw",20);
         return returnString;
     }
 
@@ -73,8 +94,9 @@ public class AtmHw implements java.io.Serializable {
         String returnString;
         returnString  = Str.padRight(getMachineId(),16);
         returnString += Str.padRight(Double.toString(getSaldo()),16);
-        returnString += Str.padRight((isHasHwError() ? "ERROR":"OK"),14);
+        returnString += Str.padRight(hwErrorCode,14);
         returnString += Str.padRight(getDescription(),40);
+        returnString += Str.padRight(Double.toString(getMaxWithdraw()),20);
 
         return returnString;
     }

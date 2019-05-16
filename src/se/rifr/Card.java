@@ -4,16 +4,18 @@ import java.time.LocalDate;
 
 public class Card implements java.io.Serializable {
 
-    private String  cardId;
-    private String  pinCode;
+    private String    cardId;
+    private String    pinCode;
     private LocalDate validThrou;
-    private Account account;
+    private Account   account;
+    private double    maxPerWeek;
 
-    public Card(String cardId, String pinCode, LocalDate validThrou, Account account) {
+    public Card(String cardId, String pinCode, LocalDate validThrou, Account account, double maxPerWeek) {
         this.cardId = cardId;
         this.pinCode = pinCode;
         this.validThrou = validThrou;
         this.account = account;
+        this.maxPerWeek = maxPerWeek;
     }
 
     public String getKey() {
@@ -52,6 +54,14 @@ public class Card implements java.io.Serializable {
         this.account = account;
     }
 
+    public double getMaxPerWeek() {
+        return maxPerWeek;
+    }
+
+    public void setMaxPerWeek(double maxPerWeek) {
+        this.maxPerWeek = maxPerWeek;
+    }
+
     @Override
     public String toString() {
         return "Card{" +
@@ -60,6 +70,7 @@ public class Card implements java.io.Serializable {
                 "ValidThrou='" + validThrou + '\'' +
                 "Saldo='" + getAccount().getSaldo() + '\'' +
                 "Name='" + getAccount().getCustomer().getFullName() + '\'' +
+                "maxPerWeek='" + maxPerWeek + '\'' +
                 '}';
     }
 
@@ -70,6 +81,7 @@ public class Card implements java.io.Serializable {
         returnString += Str.padRight("ValidThrou",14);
         returnString += Str.padRight("Name",40);
         returnString += Str.padRight("Saldo",20);
+        returnString += Str.padRight("Max/Week",20);
         return returnString;
     }
 
@@ -80,7 +92,7 @@ public class Card implements java.io.Serializable {
         returnString += Str.padRight(getValidThrou().toString(),14);
         returnString += Str.padRight(getAccount().getCustomer().getFullName(),40);
         returnString += Str.padRight(Double.toString(getAccount().getSaldo()),20);
+        returnString += Str.padRight(Double.toString(getMaxPerWeek()),20);
         return returnString;
     }
-
 }
