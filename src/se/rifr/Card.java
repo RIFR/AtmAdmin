@@ -9,6 +9,7 @@ public class Card implements java.io.Serializable {
     private LocalDate validThrou;
     private Account   account;
     private double    maxPerWeek;
+    private boolean   withDrawn; // e.g. stolen, lost
 
     public Card(String cardId, String pinCode, LocalDate validThrou, Account account, double maxPerWeek) {
         this.cardId = cardId;
@@ -16,6 +17,7 @@ public class Card implements java.io.Serializable {
         this.validThrou = validThrou;
         this.account = account;
         this.maxPerWeek = maxPerWeek;
+        this.withDrawn = false;
     }
 
     public String getKey() {
@@ -62,6 +64,14 @@ public class Card implements java.io.Serializable {
         this.maxPerWeek = maxPerWeek;
     }
 
+    public boolean isWithDrawn() {
+        return withDrawn;
+    }
+
+    public void setWithDrawn(boolean withDrawn) {
+        this.withDrawn = withDrawn;
+    }
+
     @Override
     public String toString() {
         return "Card{" +
@@ -71,6 +81,7 @@ public class Card implements java.io.Serializable {
                 "Saldo='" + getAccount().getSaldo() + '\'' +
                 "Name='" + getAccount().getCustomer().getFullName() + '\'' +
                 "maxPerWeek='" + maxPerWeek + '\'' +
+                "withDrawn='" + withDrawn + '\'' +
                 '}';
     }
 
@@ -82,6 +93,8 @@ public class Card implements java.io.Serializable {
         returnString += Str.padRight("Name",40);
         returnString += Str.padRight("Saldo",20);
         returnString += Str.padRight("Max/Week",20);
+        returnString += Str.padRight("WithDrawn",2);
+        returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
 
@@ -93,6 +106,7 @@ public class Card implements java.io.Serializable {
         returnString += Str.padRight(getAccount().getCustomer().getFullName(),40);
         returnString += Str.padRight(Double.toString(getAccount().getSaldo()),20);
         returnString += Str.padRight(Double.toString(getMaxPerWeek()),20);
+        returnString += Str.padRight((withDrawn ? "*":""),2);
         return returnString;
     }
 }

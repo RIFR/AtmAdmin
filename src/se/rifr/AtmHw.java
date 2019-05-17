@@ -87,6 +87,7 @@ public class AtmHw implements java.io.Serializable {
         returnString += Str.padRight("HwErrorCode",14);
         returnString += Str.padRight("Description",40);
         returnString += Str.padRight("MaxWithdraw",20);
+        returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
 

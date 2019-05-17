@@ -69,6 +69,7 @@ public class Account implements java.io.Serializable{
         returnString += Str.padRight("Account No",40);
         returnString += Str.padRight("Saldo",20);
         returnString += Str.padRight("Description",20);
+        returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
 

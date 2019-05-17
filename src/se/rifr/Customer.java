@@ -82,6 +82,7 @@ public class Customer implements java.io.Serializable{
         returnString += Str.padRight("Barcode",14);
         returnString += Str.padRight("email",40);
         returnString += Str.padRight("Username",20);
+        returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
 

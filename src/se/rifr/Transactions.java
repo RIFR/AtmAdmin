@@ -51,6 +51,7 @@ public class Transactions implements java.io.Serializable{
         returnString += Str.padRight("Deposit/Withdraw",40);
         returnString += Str.padRight("Amount",20);
         returnString += Str.padRight("Time",20);
+        returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
 
