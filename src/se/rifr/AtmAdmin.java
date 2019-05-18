@@ -151,6 +151,10 @@ public class AtmAdmin {
         return cardList.get(cardId).getAccount();
     }
 
+    public double getSaldo(String atmHwId) {
+        return atmHwList.get(atmHwId).getSaldo();
+    }
+
     public void start() {
 
         if (!login()) return;
