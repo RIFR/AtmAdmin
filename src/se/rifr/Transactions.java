@@ -8,12 +8,14 @@ public class Transactions implements java.io.Serializable{
     private LocalDateTime time;
     private boolean deposit;  // deposit or withdraw
     private double amount;
+    private AtmHw atmHw;
 
-    public Transactions(Account account, LocalDateTime time, boolean deposit, double amount) {
+    public Transactions(Account account, LocalDateTime time, boolean deposit, double amount, AtmHw atmHw) {
         this.account = account;
         this.time = time;
         this.deposit = deposit;
         this.amount = amount;
+        this.atmHw = atmHw;
     }
 
     //public String getKey () {
@@ -36,11 +38,14 @@ public class Transactions implements java.io.Serializable{
         return amount;
     }
 
+    public AtmHw getAtmHw() { return atmHw; }
+
     @Override
     public String toString() {
         return Str.padRight(account.getCustomer().getFullName(),30) +
               time.toLocalTime().toString().substring(0,8) + " " +
-                (deposit ? "DEPOSIT   ":"WITHDRAW " + Str.padRight(Double.toString(amount),8));
+                (deposit ? "DEPOSIT   ":"WITHDRAW " + Str.padRight(Double.toString(amount),8) + " " +
+                        atmHw.getMachineId());
     }
 
     public static String toStringHeader() {
@@ -51,6 +56,7 @@ public class Transactions implements java.io.Serializable{
         returnString += Str.padRight("Deposit/Withdraw",40);
         returnString += Str.padRight("Amount",20);
         returnString += Str.padRight("Time",20);
+        returnString += Str.padRight("Machine",20);
         returnString += "\r\n" + StdIO.ConsoleColors.BLUE + Str.pad('-',140)+ StdIO.ConsoleColors.RESET;
         return returnString;
     }
@@ -63,6 +69,7 @@ public class Transactions implements java.io.Serializable{
         returnString += Str.padRight((isDeposit() ? "DEPOSIT":"WITHDRAW"),40);
         returnString += Str.padRight(Double.toString(getAmount()),20);
         returnString += Str.padRight(getTime().toString().substring(0,19),20);
+        returnString += Str.padRight(getAtmHw().getMachineId(),20);
         return returnString;
     }
 

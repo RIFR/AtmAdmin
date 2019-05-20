@@ -11,10 +11,10 @@ public class AtmAdminServlet extends HttpServlet {
     private String title = "ATM Transactions";
     AtmAdmin atmAdmin = new AtmAdmin();
 
-    String atmHwId  = "AtmTest001";
-    String cardId   = "";
-    String pinCode  = "";
-    boolean deposit = false;
+    String atmHwId = "";
+    String cardId  = "";
+    String pinCode = "";
+    boolean deposit;
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -32,68 +32,50 @@ public class AtmAdminServlet extends HttpServlet {
                     cardId = "";
                     break;
                 case "0": // from cardLoginScr(), param atmid, cardid & pincode
-                    atmHwId = request.getParameter("atmid");
-                    if (atmAdmin.checkMachine(atmHwId).isEmpty())
+                    if (atmHwId.isEmpty())
+                        atmHwId = request.getParameter("atmid");
+                    if (!atmAdmin.atmMachineOk(atmHwId))
                         message = cardLoginScr();
                     else
                         message = cardLogin(request.getParameter("cardid"), request.getParameter("pincode"));
                     break;
                 case "1": // from cardLogin, param option (1=deposit, 2=withdraw, 3=view saldo)
                     String opt1 = request.getParameter("option");
-                    if (opt1.equals("3")) {
-                        message = InfoMenu(String.valueOf(atmAdmin.getAccount(cardId).getSaldo()), "0",
-                                "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
-                    } else {
-                        deposit = (opt1.equals("1"));
-                        message = depositWithdrawAmountMenu();
+                    switch (opt1) {
+                        case "1":
+                        case "2":
+                            deposit = (opt1.equals("1"));
+                            message = depositWithdrawAmountMenu();
+                            break;
+                        case "3":
+                            message = InfoMenu(String.valueOf(atmAdmin.getAccount(cardId).getSaldo()), "0",
+                                    "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
+                                            "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
+                                            "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
+                            break;
+                        case "5":
+                            atmHwId = "";
+                            cardId  = "";
+                            message = cardLoginScr();
+                            break;
+                        default:
+                            cardId  = "";
+                            message = cardLoginScr();
                     }
+
                     break;
                 case "2": // from depositWithdrawAmountMenu, param option (1-7 hardcoded amount, 8 enter any amount)
                     String opt2 = request.getParameter("option");
                     if (opt2.equals("8"))
                         message = getAmountMenu();
-                    else {
-                        if (!deposit && atmAdmin.checkSaldo(cardId, Double.valueOf(getAmount(opt2))).isEmpty())
-                            message = InfoMenu("Saldo " + String.valueOf(atmAdmin.getAccount(cardId).getSaldo()), "0",
-                                    "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
-                                            "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
-                                            "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
-                        else {
-                            if (!atmAdmin.registerTransaction(atmAdmin.getAccount(cardId), deposit, Double.valueOf(getAmount(opt2))).isEmpty())
-                                atmAdmin.registerAtmTransaction(atmHwId, deposit, Double.valueOf(getAmount(opt2)));
-
-                            message = InfoMenu("Thanks for using this ATM machine " +
-                                    atmAdmin.getAccount(cardId).getCustomer().getFullName(), "m", "");
-                        }
-                    }
-
+                    else
+                        message = handleTransaction (Double.valueOf(getAmount(opt2)));
                     break;
                 case "3":
                     String amount = request.getParameter("amount");
-                    if (!deposit && atmAdmin.checkSaldo(cardId, Double.valueOf(amount)).isEmpty())
-                        message = InfoMenu("Saldo " + String.valueOf(atmAdmin.getAccount(cardId).getSaldo()), "0",
-                                "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
-                    else if (atmAdmin.checkMachineSaldo(atmHwId, deposit, Double.valueOf(amount)).isEmpty()) {
-                        message = InfoMenu("ATM Saldo " + String.valueOf(atmAdmin.getSaldo(atmHwId)), "0",
-                                "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
-                                        "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
-                    } else {
-                        String res = atmAdmin.registerTransaction(atmAdmin.getAccount(cardId), deposit, Double.valueOf(amount));
-                        if (res.isEmpty())
-                            message += cardLoginScr();
-                        else {
-                            atmAdmin.registerAtmTransaction(atmHwId, deposit, Integer.valueOf(amount));
-                            message += InfoMenu("Thanks for using this ATM machine " +
-                                    atmAdmin.getAccount(cardId).getCustomer().getFullName(), "m", "");
-                        }
-
-                        break;
-                    }
+                    message = handleTransaction (Double.valueOf(amount));
+                    break;
+                }
             }
 
             // Set response content type
@@ -112,37 +94,63 @@ public class AtmAdminServlet extends HttpServlet {
                     "</html>"
             );
         }
-    }
+
 
         private String cardLoginScr () {
 
             String returnStr;
             returnStr = "<form action = \"AtmAdminServlet\" method = \"GET\">\n";
             returnStr += "    <input type = \"hidden\" name = \"pos\" value = \"0\">\n";
-            returnStr += "    ATM No : <input type = \"text\" name = \"atmid\">\n";
-            returnStr += "    <br />";
+            if (atmHwId.isEmpty()) {
+                returnStr += "    ATM No : <input type = \"text\" name = \"atmid\">\n";
+                returnStr += "    <br />";
+            }
             returnStr += "    Card No : <input type = \"text\" name = \"cardid\">\n";
             returnStr += "    <br />";
             returnStr += "    Pin Code:  <input type = \"password\" name = \"pincode\">\n";
             returnStr += "    <br />";
             returnStr += "    <input type = \"submit\" value = \"Submit\" />\n";
             returnStr += "</form>";
-            title = "Login";
+            title = "Card Login";
             return returnStr;
         }
 
         private String cardLogin (String cardid, String pincode){
 
-            if (atmAdmin.checkCode(cardid, pincode).isEmpty() || atmAdmin.checkCard(cardid).isEmpty()) {
+            if (!atmAdmin.cardCodeOk(cardid, pincode) || !atmAdmin.cardOk(cardid)) {
 
                 return cardLoginScr();
             }
 
-            cardId = cardid; //set global variable
+            cardId  = cardid; //set global variables
             pinCode = pincode;
 
             return inputDepositWithdrawMeny();
 
+        }
+
+        private String handleTransaction (double amount) {
+
+            if (!deposit && !atmAdmin.cardSaldoOk(cardId, amount))
+                return InfoMenu("Saldo " + String.valueOf(atmAdmin.getSaldo(cardId)), "0",
+                        "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
+                                "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
+                                "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
+            else if (!atmAdmin.atmMachinSaldoOk(atmHwId, deposit,amount))
+                return InfoMenu((atmAdmin.getAtmHw(atmHwId).getSaldo() < amount ?
+                                "ATM Saldo " + String.valueOf(atmAdmin.getAtmHw(atmHwId).getSaldo()):
+                                "Max Withdraw " + String.valueOf(atmAdmin.getAtmHw(atmHwId).getMaxWithdraw())), "0",
+                        "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
+                                "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
+                                "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
+            else {
+                String res3 = atmAdmin.registerFullTransaction(atmHwId,cardId, deposit,amount);
+                if (res3.isEmpty())
+                    return cardLoginScr();
+                else {
+                    return InfoMenu("Thanks for using this ATM machine " +res3, "m", "");
+                }
+            }
         }
 
         private String inputDepositWithdrawMeny () {
@@ -154,6 +162,7 @@ public class AtmAdminServlet extends HttpServlet {
             returnStr += "    <h1> 1.Deposit       </h1>\n";
             returnStr += "    <h1> 2.Withdraw      </h1>\n";
             returnStr += "    <h1> 3.Present Saldo </h1>\n";
+            returnStr += "    <h1> 4.Exit </h1>\n";
             returnStr += "    Options: <input type = \"text\" name = \"option\" value = \"" + option + "\">\n";
             returnStr += "    <br />";
             returnStr += "    <input type = \"submit\" value = \"Submit\" />\n";
@@ -200,7 +209,7 @@ public class AtmAdminServlet extends HttpServlet {
                 case "7":
                     return 1500;
                 default:
-                    return 0;
+                    return Integer.valueOf(option);
             }
         }
 
