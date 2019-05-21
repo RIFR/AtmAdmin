@@ -102,12 +102,12 @@ public class AtmAdminServlet extends HttpServlet {
             returnStr = "<form action = \"AtmAdminServlet\" method = \"GET\">\n";
             returnStr += "    <input type = \"hidden\" name = \"pos\" value = \"0\">\n";
             if (atmHwId.isEmpty()) {
-                returnStr += "    ATM No : <input type = \"text\" name = \"atmid\">\n";
+                returnStr += "    Atm No  : <input type = \"text\" name = \"atmid\">\n";
                 returnStr += "    <br />";
             }
             returnStr += "    Card No : <input type = \"text\" name = \"cardid\">\n";
             returnStr += "    <br />";
-            returnStr += "    Pin Code:  <input type = \"password\" name = \"pincode\">\n";
+            returnStr += "    Pincode :  <input type = \"password\" name = \"pincode\">\n";
             returnStr += "    <br />";
             returnStr += "    <input type = \"submit\" value = \"Submit\" />\n";
             returnStr += "</form>";
@@ -132,7 +132,8 @@ public class AtmAdminServlet extends HttpServlet {
         private String handleTransaction (double amount) {
 
             if (!deposit && !atmAdmin.cardSaldoOk(cardId, amount))
-                return InfoMenu("Saldo " + String.valueOf(atmAdmin.getSaldo(cardId)), "0",
+                return InfoMenu("Saldo " + String.valueOf(atmAdmin.getSaldo(cardId)) + " Last week " +
+                                String.valueOf(atmAdmin.WithdrawsLastWeek(atmAdmin.getCard(cardId))), "0",
                         "    <input type = \"hidden\" name = \"atmid\" value = \"" + atmHwId + "\">\n" +
                                 "    <input type = \"hidden\" name = \"cardid\" value = \"" + cardId + "\">\n" +
                                 "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
@@ -145,10 +146,8 @@ public class AtmAdminServlet extends HttpServlet {
                                 "    <input type = \"hidden\" name = \"pincode\" value = \"" + pinCode + "\">\n");
             else {
                 String res3 = atmAdmin.registerFullTransaction(atmHwId,cardId, deposit,amount);
-                if (res3.isEmpty())
-                    return cardLoginScr();
-                else {
-                    return InfoMenu("Thanks for using this ATM machine " +res3, "m", "");
+                if (res3.isEmpty()) return cardLoginScr();
+                else { return InfoMenu("Thanks for using this ATM machine " +res3, "m", "");
                 }
             }
         }
