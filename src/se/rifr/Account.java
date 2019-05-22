@@ -37,6 +37,7 @@ public class Account implements java.io.Serializable{
     }
 
     public void setSaldo(double saldo) {
+        if (saldo < 0) throw new IllegalArgumentException("Saldo is not allowed be less than 0");
         this.saldo = saldo;
     }
 
@@ -49,7 +50,7 @@ public class Account implements java.io.Serializable{
     }
 
     public void changeSaldo(double amount, boolean deposit ) {
-        saldo += (deposit ? amount : -amount);
+        setSaldo (saldo += (deposit ? amount : -amount));
     }
 
     @Override
